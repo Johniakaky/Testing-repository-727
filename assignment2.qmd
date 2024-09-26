@@ -58,40 +58,41 @@ Answer the following questions for the keywords "crime" and "loans".
 
 -   Find the mean, median and variance of the search hits for the keywords.
 
-    -   Below are summary statistics by key search for our time period.
+-   Below are the means, medians, and variances by key search for our time period. We can see that for **loans**, the mean search was 64.5 (median 62) compared to __crime__, 52.9 (median 52). We also note that there is more variability in __loan__ searches.
 
 ```{r}
-        res$interest_over_time |> 
-          group_by(keyword) |> 
-           # summary statistics 
-          summarise(across(hits, list(mean, median, var))) |>  
-          # rename outputs
-          rename(mean_hits=2, median_hits=3, var_hits=4) |> 
-          kable()
-          
+res$interest_over_time |> 
+  group_by(keyword) |> 
+  # summary statistics 
+  summarise(across(hits, list(mean, median, var))) |>  
+  mutate_at(2:4, round, 2) |> 
+  rename(mean_hits=2, median_hits=3, var_hits=4) |> 
+  as_tibble() |> 
+  kable()
+
 ```
 
 <br>
 
 -   Which cities (locations) have the highest search frequency for `loans`? Note that there might be multiple rows for each city if there were hits for both "crime" and "loans" in that city. It might be easier to answer this question if we had the search hits info for both search terms in two separate variables. That is, each row would represent a unique city.
 
-    -   The following 7 cities below had the highest search frequency for ***loans*** during our query time period, and accounted for almost $25\%$ of all search hits for ***loans.***
+-   The following 7 cities below had the highest search frequency for ***loans*** during our query time period, and accounted for almost $25\%$ of all search hits for ***loans.***
 
-    ```{r}
-    res$interest_by_city |> 
-      filter(keyword == "loans", !is.na(hits)) |> 
-      mutate(perc_hits = round(
-        (hits / sum(hits)) * 100, 1)) |> 
-      arrange(desc(hits)) |> 
-      select(location, keyword, hits, perc_hits) |> 
-      head(7) |> kable()
-    ```
+```{r}
+res$interest_by_city |> 
+  filter(keyword == "loans", !is.na(hits)) |> 
+  mutate(perc_hits = round(
+    (hits / sum(hits)) * 100, 1)) |> 
+  arrange(desc(hits)) |> 
+  select(location, keyword, hits, perc_hits) |> 
+  head(7) |> kable()
+```
 
 <br>
 
 -   Is there a relationship between the search intensities between the two keywords we used?
 
-    -   Based on the time series plot above, it appears that there might be a negative relationship between keywords loans and crimes. Particularly in the early months of 2020, as keyword search hits for loans increases hits for crime decrease. However, there could be a confounding variable that can explain the trajectory of these two keyword search popularizes.
+-   Based on the time series plot above, it appears that there might be a negative relationship between keywords loans and crimes. Particularly in the early months of 2020, as keyword search hits for loans increases hits for crime decrease. However, there could be a confounding variable that can explain the trajectory of these two keyword search popularizes.
 
 <br>
 
@@ -99,7 +100,7 @@ Repeat the above for keywords related to covid. Make sure you use multiple keywo
 
 -   Keyword terms commented out below were used but did not show much variability in the time period we selected for the state of Illinois. The most important keyword searches are presented below *{"covid", "coronavirus", "WHO", "cases", "mask"}.*
 
-    -   From the plot below we can see that as the lockdown in late March 2020 took place, the search for "coronavirus" in Illinois peaked. WHO as a search term also peaked in late in early December as "covid" searches were also becoming popular. Interestingly, masks and cases follow a similar trend line.
+-   From the plot below we can see that as the lockdown in late March 2020 took place, the search for "coronavirus" in Illinois peaked. WHO as a search term also peaked in late in early December as "covid" searches were also becoming popular. Interestingly, masks and cases follow a similar trend line.
 
 ```{r}
 
@@ -108,9 +109,9 @@ covid <- gtrends(c("covid", "coronavirus", "WHO",
                    # "vaccine", "PPE
                    # "corona", "sanitizer", "covid-19".
                    "cases", "mask"), 
-               geo = "US-IL", 
-               time = "2020-01-01 2020-12-31", 
-               low_search_volume = TRUE)
+                 geo = "US-IL", 
+                 time = "2020-01-01 2020-12-31", 
+                 low_search_volume = TRUE)
 
 plot(covid)
 ```
@@ -159,13 +160,13 @@ acs_il |>
   kable()
 
 acs_il <- acs_il |> 
- mutate(across(where(is.double),~na_if(., -666666666))) 
+  mutate(across(where(is.double),~na_if(., -666666666))) 
 
 # after
 acs_il |> 
   slice(17:20) |> 
   kable()
-  
+
 ```
 
 <br>
@@ -205,22 +206,22 @@ acs_il <- acs_il |>
   # keep everything before comma
   mutate (location = str_extract(NAME, "[^,]+"), 
           # remove jargon words
-        location = str_remove(location, "village|city|\\stown|CDP"),
-        # remove white spaces
-        location = str_trim(location)) 
+          location = str_remove(location, "village|city|\\stown|CDP"),
+          # remove white spaces
+          location = str_trim(location)) 
 
 acs_covid <- 
   covid$interest_by_city |> as_tibble() |> 
   mutate( 
     # abbreviate
     location = str_replace(location, "Saint\\s", "St. "), 
-         location = str_replace(location, "Sainte\\s", "Ste. "),
-         location = str_remove(location, "Fort ") ) |> 
+    location = str_replace(location, "Sainte\\s", "Ste. "),
+    location = str_remove(location, "Fort ") ) |> 
   # join with ACS
   left_join(acs_il, relationship = "many-to-many")
 
 head(acs_covid) |> kable()
-  
+
 ```
 
 <br>
@@ -228,7 +229,7 @@ head(acs_covid) |> kable()
 Answer the following questions with the "crime" and "loans" Google trends data and the ACS data.
 
 -   First, check how many cities don't appear in both data sets, i.e. cannot be matched. Then, create a new data set by joining the Google Trends and the ACS data. Keep only cities that appear in both data sets.
-    -   There are 9 city names that do not match across the Census and google trends tables.
+-   There are 9 city names that do not match across the Census and google trends tables.
 
 ```{r}
 asc_crime_loans <- res$interest_by_city |> as_tibble() |> 
@@ -251,8 +252,8 @@ asc_crime_loans |>
 <br>
 
 -   Compute the mean of the search popularity for both keywords for cities that have an above average median household income and for those that have an below average median household income. When building your pipe, start with creating the grouping variable and then proceed with the remaining tasks. What conclusions might you draw from this?
-    -   Cities with below average median household income on average had more searches on **crime** compared to cities with above average median household income, suggesting that less affluent cities are more concerned about crime as it may directly impact them during the pandemic.
-    -   Cities with above average median household income on average had more **loan** searches than cities with below average median household income, suggesting that more affluent cities are able to seek out loans during the pandemic.
+-   Cities with below average median household income on average had more searches on **crime** compared to cities with above average median household income, suggesting that less affluent cities are more concerned about crime as it may directly impact them during the pandemic.
+-   Cities with above average median household income on average had more **loan** searches than cities with below average median household income, suggesting that more affluent cities are able to seek out loans during the pandemic.
 
 ```{r}
 asc_crime_loans |> 
@@ -268,9 +269,9 @@ asc_crime_loans |>
 <br>
 
 -   Is there a relationship between the median household income and the search popularity of the Google trends terms? Describe the relationship and use a scatterplot with `qplot()`.
-    -   At a glance, it does not appear that there is a linear relationship between Illinois median household income and keyword search popularity.
-    -   However, when we color code by keywords we see that for the keyword **crime** there is a negative relationship, as Illinois median household income goes up, popularity for keyword **crime** goes does during the pandemic.
-    -   On the other hand, as Illinois median household income goes up, popularity for keyword **loan** goes up during the pandemic.
+-   At a glance, it does not appear that there is a linear relationship between Illinois median household income and keyword search popularity.
+-   However, when we color code by keywords we see that for the keyword **crime** there is a negative relationship, as Illinois median household income goes up, popularity for keyword **crime** goes does during the pandemic.
+-   On the other hand, as Illinois median household income goes up, popularity for keyword **loan** goes up during the pandemic.
 
 ```{r}
 asc_crime_loans |> 
@@ -320,8 +321,8 @@ acs_covid |>
   ggplot(aes(x=hh_income, y=hits, color=keyword)) +
   geom_point() +
   facet_wrap(~keyword, ncol=2) +
-   geom_smooth(method="lm", na.rm=T, se=FALSE, 
+  geom_smooth(method="lm", na.rm=T, se=FALSE, 
               formula=y~x, aes(color=keyword)) +
-    scale_color_viridis_d(option="B", end=.8) +
+  scale_color_viridis_d(option="B", end=.8) +
   ggtitle("Illinois: Median household income associated with popular COVID related keyword searches during the pandemic.")
 ```
