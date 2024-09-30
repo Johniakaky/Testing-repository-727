@@ -17,6 +17,14 @@ toc-depth: 2
 
 <br><br>
 
+
+
+## Github repository: 
+-   [https://github.com/Johniakaky/Testing-repository-727](https://github.com/Johniakaky/Testing-repository-727)
+
+<br><br>
+
+
 You may work in pairs or individually for this assignment. Make sure you join a group in Canvas if you are working in pairs. Turn in this assignment as an HTML or PDF file to ELMS. Make sure to include the R Markdown or Quarto file that was used to generate it.
 
 ```{r}
@@ -44,6 +52,7 @@ Whenever possible, use piping and `dplyr`. Avoid hard-coding any numbers within 
 ## Pulling from APIs
 
 Our first data source is the Google Trends API. Suppose we are interested in the search trends for `crime` and `loans` in Illinois in the year 2020. We could find this using the following code:
+
 
 ```{r}
 res <- gtrends(c("crime", "loans"), 
